@@ -113,8 +113,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    unsigned b = HAL_GetTick() >> 7;
-    GPIOB->BSRR = (b&1)? LD1_Pin : LD1_Pin << 16;
+    unsigned b = (HAL_GetTick() >> (USER_Btn_get() ? 5 : 7)) & 1;
+    ///GPIOB->BSRR = (b&1)? LD1_Pin : LD1_Pin << 16;
+    LD1_set(b);
+    LD2_set(!b);
 
 
     /* USER CODE END WHILE */
