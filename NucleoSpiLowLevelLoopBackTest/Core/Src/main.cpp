@@ -104,8 +104,6 @@ int main(void)
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
 
-  //SCB_EnableICache();
-  //SCB_EnableDCache();
 
   /* USER CODE END 2 */
 
@@ -113,10 +111,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    unsigned b = (HAL_GetTick() >> (USER_Btn_get() ? 5 : 7)) & 1;
-    ///GPIOB->BSRR = (b&1)? LD1_Pin : LD1_Pin << 16;
-    LD1_set(b);
-    LD2_set(!b);
+    static unsigned b_save = -1;
+    const unsigned b = (HAL_GetTick() >> (USER_Btn_get() ? 5 : 7)) & 3;
+    if (b_save != b)
+    {
+      b_save = b;
+      LD1_set(b == 1);
+      LD2_set(b == 2);
+      LD3_set(b == 3);
+    }
 
 
     /* USER CODE END WHILE */
@@ -166,7 +169,7 @@ void SystemClock_Config(void)
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2; // @suppress("C-Style cast instead of C++ cast")
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
@@ -183,7 +186,7 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void MX_SPI1_Init(void)
+static void MX_SPI1_Init(void) // @suppress("Name convention for function")
 {
 
   /* USER CODE BEGIN SPI1_Init 0 */

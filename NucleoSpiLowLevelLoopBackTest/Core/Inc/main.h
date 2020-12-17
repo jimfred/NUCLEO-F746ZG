@@ -131,6 +131,7 @@ void Error_Handler(void);
  */
 GPIO_output_functions(LD1);
 GPIO_output_functions(LD2);
+GPIO_output_functions(LD3);
 GPIO_input_functions(USER_Btn);
 
 /* USER CODE END Private defines */
