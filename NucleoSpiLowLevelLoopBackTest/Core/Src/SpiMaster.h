@@ -14,7 +14,7 @@
 
 namespace SpiMaster
 {
-static const unsigned buffer_size = 3*4;
+static const unsigned buffer_size = 3*2;
 extern uint8_t tx_buf[buffer_size];
 extern uint8_t rx_buf[buffer_size];
 extern SPI_TypeDef        & r_spi   ;

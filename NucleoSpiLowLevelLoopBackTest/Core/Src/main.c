@@ -26,9 +26,8 @@
 #include "assert.h"
 #define JIM_SPI_M_DMA 0
 #define JIM_SPI_S_DMA 1
-#define JIM_SPI_S_HAL 0
 
-#if JIM_SPI_S_DMA || JIM_SPI_S_HAL
+#if JIM_SPI_S_DMA
 #include "SpiSlave.h"
 #endif
 
@@ -115,9 +114,6 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
-#if JIM_SPI_S_HAL
-  SpiSlave::HalInit();
-#endif
 #if (JIM_SPI_S_DMA)
     SpiSlave::init();
   SpiSlave::reload();
@@ -147,7 +143,29 @@ int main(void)
     }
 
     ///PB6_set(!PB6_get());
-    PB6_set(SPI1_NSS_get());
+    static bool nss_save;
+    const bool nss = SPI1_NSS_get();
+    if (nss_save != nss)
+    {
+      nss_save = nss;
+      if (nss)
+      {
+        PB6_on();
+        SpiSlave::r_spi.CR1 |= SPI_CR1_SSI;
+        PB6_off();
+
+        SpiSlave::stop();
+        SpiSlave::spi_fifo_reset();
+        SpiSlave::reload();
+        SpiSlave::start();
+      }
+      else
+      {
+        PB6_on();
+        SpiSlave::r_spi.CR1 &= ~SPI_CR1_SSI;
+        PB6_off();
+      }
+    }
 
     if (USER_Btn_save != user_btn)
     {
@@ -158,12 +176,6 @@ int main(void)
     	  SpiSlave::HalRx();
 #endif
 
-#if JIM_SPI_S_DMA
-    	  SpiSlave::stop();
-    	  SpiSlave::spi_fifo_reset();
-    	  SpiSlave::reload();
-    	  SpiSlave::start();
-#endif
 #if JIM_SPI_M_DMA
           static uint8_t tx_data_pattern = 0x40;
 
@@ -448,6 +460,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : USER_Btn_Pin */
   GPIO_InitStruct.Pin = USER_Btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -525,6 +540,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_VBUS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SPI3_NSS_Pin */
+  GPIO_InitStruct.Pin = SPI3_NSS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(SPI3_NSS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RMII_TX_EN_Pin RMII_TXD0_Pin */
   GPIO_InitStruct.Pin = RMII_TX_EN_Pin|RMII_TXD0_Pin;

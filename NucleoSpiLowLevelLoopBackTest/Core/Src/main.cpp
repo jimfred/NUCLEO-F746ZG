@@ -15,6 +15,17 @@
   *                        opensource.org/licenses/BSD-3-Clause
   *
   ******************************************************************************
+
+Nulceo-F746ZG
+SPI1 is Slave
+SPI3 is Master
+Loopback connections on Nucleo board:
+      SPI3                 SPI1
+nSS   PA15 out             PA4 in
+SCK   PC10                 PA5
+MOSI  PB2                  PB5
+MISO  PC11                 PA6
+
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -25,7 +36,7 @@
 #include "string.h" // memset
 #include "assert.h"
 
-#define JIM_SPI_M_DMA 0
+#define JIM_SPI_M_DMA 1
 #define JIM_SPI_S_DMA 1
 
 #if JIM_SPI_S_DMA
@@ -115,6 +126,7 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
+  SPI3_NSS_on();
 #if (JIM_SPI_S_DMA)
   SpiSlave::init();
   SpiSlave::reload();
@@ -122,6 +134,9 @@ int main(void)
 #endif
 
 
+#if (JIM_SPI_M_DMA)
+    SpiMaster::init();
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -172,12 +187,9 @@ int main(void)
       USER_Btn_save = user_btn;
       if (user_btn)
       {
-#if JIM_SPI_S_HAL
-    	  SpiSlave::HalRx();
-#endif
-
 
 #if JIM_SPI_M_DMA
+          SPI3_NSS_off();
 
           static uint8_t tx_data_pattern = 0x40;
 
@@ -192,6 +204,10 @@ int main(void)
         /*
 
         */
+      }
+      else
+      {
+        SPI3_NSS_off();
       }
     }
 
@@ -337,7 +353,7 @@ static void MX_SPI3_Init(void)
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   GPIO_InitStruct.Alternate = LL_GPIO_AF_6;
   LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
@@ -461,6 +477,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, GPIO_PIN_RESET);
   /*Configure GPIO pin : USER_Btn_Pin */
   GPIO_InitStruct.Pin = USER_Btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -537,6 +555,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_VBUS_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pin : SPI3_NSS_Pin */
+  GPIO_InitStruct.Pin = SPI3_NSS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(SPI3_NSS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RMII_TX_EN_Pin RMII_TXD0_Pin */
   GPIO_InitStruct.Pin = RMII_TX_EN_Pin|RMII_TXD0_Pin;
