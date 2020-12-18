@@ -23,8 +23,6 @@ DMA_Stream_TypeDef & r_ds_tx = *DMA2_Stream3;
 // These bits must be cleared before starting a new DMA transfer.
 // There are 10 bits: 5 bits, TCIF HTIF TEIF DMEIF FEIF, for 2 streams, stream0 for RX. stream3 for TX.
 
-
-
 void init()
 {
   // Assume that the xISR and xIFCR_C bits are the same.
@@ -45,7 +43,8 @@ void init()
   assert(!READ_BIT(r_spi.CR1, SPI_CR1_MSTR)); // Should already be a Slave.
   assert(READ_BIT(r_ds_rx.CR, DMA_SxCR_DIR) ==              0); // 0              is  Peripheral to memory.
   assert(READ_BIT(r_ds_tx.CR, DMA_SxCR_DIR) == DMA_SxCR_DIR_0); // DMA_SxCR_DIR_0 is  Memory to peripheral.
-  assert(READ_BIT(r_spi.CR1, SPI_CR1_SSM)); // Software Select Management (of nSS) must be enabled is using the SPI_CR1_SSI.
+  assert(READ_BIT(r_spi.CR1, SPI_CR1_SSM)); // Software Select Management (of nSS) must be enabled if using the SPI_CR1_SSI.
+  assert(!READ_BIT(r_spi.CR2, SPI_CR2_SSOE)); // For slave, SSOE should be off.
 
   assert(!READ_BIT(r_spi.CR1, SPI_CR1_SPE)); // Should not be enabled.
 
@@ -66,12 +65,16 @@ void init()
   assert(!READ_BIT(r_dma.LISR, dma_lisr_mask));
 
   // Initialize.
-  WRITE_REG(r_ds_rx.NDTR, buffer_size);
-  WRITE_REG(r_ds_rx.M0AR, (uint32_t )&(r_spi.DR)); // source address
-  WRITE_REG(r_ds_rx.PAR, (uint32_t )&rx_buf[0]);   // destination address
-  WRITE_REG(r_ds_tx.NDTR, buffer_size);
-  WRITE_REG(r_ds_tx.M0AR, (uint32_t )&tx_buf[0]);  // source address
-  WRITE_REG(r_ds_tx.PAR, (uint32_t )&(r_spi.DR));  // destination address
+  //WRITE_REG(r_ds_rx.NDTR, buffer_size);
+  WRITE_REG(r_ds_rx.PAR, (uint32_t )&(r_spi.DR)); // peripheral address
+  WRITE_REG(r_ds_rx.M0AR, (uint32_t )&rx_buf[0]); // memory address
+  //WRITE_REG(r_ds_tx.NDTR, buffer_size);
+  WRITE_REG(r_ds_tx.M0AR, (uint32_t )&tx_buf[0]); // memory address
+  WRITE_REG(r_ds_tx.PAR, (uint32_t )&(r_spi.DR)); // peripheral address
+
+  SET_BIT(r_spi.CR1, SPI_CR1_SSI); // software-control of nSS - 1=release.
+
+  memcpy(tx_buf, "\x02\x00\x4F\x8F\xF1\xF2\xF4\xF8", 8);
 
 }
 

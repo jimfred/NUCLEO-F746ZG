@@ -82,6 +82,8 @@ void Error_Handler(void);
 #define RMII_REF_CLK_GPIO_Port GPIOA
 #define RMII_MDIO_Pin GPIO_PIN_2
 #define RMII_MDIO_GPIO_Port GPIOA
+#define SPI1_NSS_Pin GPIO_PIN_4
+#define SPI1_NSS_GPIO_Port GPIOA
 #define RMII_CRS_DV_Pin GPIO_PIN_7
 #define RMII_CRS_DV_GPIO_Port GPIOA
 #define RMII_RXD0_Pin GPIO_PIN_4
@@ -128,6 +130,9 @@ void Error_Handler(void);
 #define LD2_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
+
+#define SPI1_NSS_GPIO_Port GPIOA
+#define SPI1_NSS_Pin GPIO_PIN_4
 /**
  * This block defines access to GPIO pins.
  */
@@ -136,6 +141,9 @@ GPIO_output_functions(LD2);
 GPIO_output_functions(LD3);
 GPIO_output_functions(PB6);
 GPIO_input_functions(USER_Btn);
+GPIO_input_functions(SPI1_NSS);
+
+extern SPI_HandleTypeDef hspi1;
 
 /* USER CODE END Private defines */
 
