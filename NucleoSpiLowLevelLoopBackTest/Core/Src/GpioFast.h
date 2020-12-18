@@ -1,3 +1,10 @@
+/*
+ * GpioFast.h
+ * Fast GPIO pin manipulation.
+ * Useful for code-timing checks.
+ * For use with C and C++.
+ */
+
 /**
  * Define _INLINE_FAST, a more concise variant of frequently used attributes.
  * Regarding inlining:
@@ -10,13 +17,13 @@
 #define _INLINE_FAST inline __attribute__((always_inline)) __attribute__((optimize("-Ofast")))
 
 /**
- * Define a macro to generate functions
+ * Define a macro to generate functions.
  * In modern times, we'd use a C++ class instead of these cumbersome macros, but
  * there are two reasons for using macros:
  * [1] Legacy C code can't use C++ classes.
  * [2] I found cases where C++ classes were slower unless the caller was optimized -Ofast.
  *
- * Why GPIO_output_functions, with and without the '2'? See https://stackoverflow.com/a/1254012/101252 that
+ * Why two GPIO_output_functions (with and without the '2')? See https://stackoverflow.com/a/1254012/101252 that
  * describes the need for an extra level of "function-like macro" when using the ##
  * pre-processor token-concatenate operator.
  *

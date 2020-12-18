@@ -122,6 +122,8 @@ void Error_Handler(void);
 #define RMII_TXD0_GPIO_Port GPIOG
 #define SW0_Pin GPIO_PIN_3
 #define SW0_GPIO_Port GPIOB
+#define PB6_Pin GPIO_PIN_6
+#define PB6_GPIO_Port GPIOB
 #define LD2_Pin GPIO_PIN_7
 #define LD2_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
@@ -132,6 +134,7 @@ void Error_Handler(void);
 GPIO_output_functions(LD1);
 GPIO_output_functions(LD2);
 GPIO_output_functions(LD3);
+GPIO_output_functions(PB6);
 GPIO_input_functions(USER_Btn);
 
 /* USER CODE END Private defines */
