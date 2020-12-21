@@ -29,3 +29,4 @@ custom_mark10
 4. SPI Master releases nSS upon completion of TX/RX. MISO line tri-states and gradually pulls high
 5. SPI Slave stops to process data.
 6. SPI Slave gets ready for next TX/RX.
+ 
