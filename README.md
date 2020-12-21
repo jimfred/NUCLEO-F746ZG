@@ -14,10 +14,8 @@ Software nSS was used assuming that the address is decoded in software.
 <summary></summary>
 custom_mark10
   digraph G {
-  make_string [label="make a string"];
-    size ="4,4";
-    SpiM [shape=box label="SPI3, Master"];
-    SpiS [shape=box label="SPI1, Slave"];
+    SpiM [shape=box, label="SPI3, Master"];
+    SpiS [shape=box, label="SPI1, Slave"];
     SpiM -> SpiS;
   }
 custom_mark10
