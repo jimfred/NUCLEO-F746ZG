@@ -1,11 +1,27 @@
 # NUCLEO-F746ZG
+This is a repository of example code for the Nucleo board for the STM32F746.
+These projects use CubeMX for configuration and the Stm32CubeIde for the IDE.
 
 ## NucleoSpiLowLevelLoopBackTest 
 This is a project to test SPI DMA operation. DMA is used to reduce CPU cycles for time-critical SPI communications.
 SPI3 as a SPI Master is connected to SPI1 as a SPI Slave.
 The focus of this exercise is to optimize the SPI Slave side and the SPI master is provides a convenient source signal. 
 HAL drivers were used only for initialization but even LL drivers seemed cumbersome so register access is used, using .cpp '&' references to registers.
-Software nSS was used assuming that address decoding is being
+Software nSS was used assuming that the address is decoded in software.
+
+![Alt text](https://g.gravizo.com/source/custom_mark10?https%3A%2F%2Fraw.githubusercontent.com%2Fjimfred%2FNUCLEO-F746ZG%2FREADME.md)
+<details> 
+<summary></summary>
+custom_mark10
+  digraph G {
+  make_string [label="make a string"];
+    size ="4,4";
+    SpiM [shape=box label="SPI3, Master"];
+    SpiS [shape=box label="SPI1, Slave"];
+    SpiM -> SpiS;
+  }
+custom_mark10
+</details>
 
 ![WaveformImage](SpiLoopBack.JPG)
 1. Push button is pressed and nSS is asserted by the SPI master. SCK is 13.9 MHz.
