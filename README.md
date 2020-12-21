@@ -17,7 +17,7 @@ custom_mark10
     size ="4,4";
     SpiM [shape=box, label="SPI3, Master"];
     SpiS [shape=box, label="SPI1, Slave"];
-    SpiM -> SpiS [label="Software-controlled nSS, SCK, MOSI, MISO"];
+    SpiM -> SpiS [label="Software controlled nSS, SCK, MOSI, MISO"];
   }
 custom_mark10
 </details>
