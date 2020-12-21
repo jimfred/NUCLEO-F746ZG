@@ -67,13 +67,15 @@ void init()
   assert(!READ_BIT(r_dma.LISR, dma_lisr_mask));
   assert(!READ_BIT(r_dma.HISR, dma_hisr_mask));
 
+  ss_release(); // initially released.
+
   // Initialize.
   WRITE_REG(r_ds_rx.NDTR, buffer_size);
-  WRITE_REG(r_ds_rx.M0AR, (uint32_t )&(r_spi.DR)); // source address
-  WRITE_REG(r_ds_rx.PAR, (uint32_t )&rx_buf[0]);   // destination address
+  WRITE_REG(r_ds_rx.PAR, (uint32_t )&(r_spi.DR)); // peripheral address
+  WRITE_REG(r_ds_rx.M0AR, (uint32_t )&rx_buf[0]); // memory address
   WRITE_REG(r_ds_tx.NDTR, buffer_size);
-  WRITE_REG(r_ds_tx.M0AR, (uint32_t )&tx_buf[0]);  // source address
-  WRITE_REG(r_ds_tx.PAR, (uint32_t )&(r_spi.DR));  // destination address
+  WRITE_REG(r_ds_tx.M0AR, (uint32_t )&tx_buf[0]);  // memory address
+  WRITE_REG(r_ds_tx.PAR, (uint32_t )&(r_spi.DR));  // peripheral address
 
 }
 

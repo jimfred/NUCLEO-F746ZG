@@ -37,12 +37,16 @@
  * The generated functions are inline fast functions that are fast even in un-optimized code.
  * These functions are preferred over macros (for debugging, argument-checking) and work in gcc C code.
  * A getter and setter is included. unsigned is used instead of bool or BOOL to be compatible with C and C++.
+ *
+ * _pulse() is useful for debugging, to differentiate between different events on the logic analyzer.
  */
 #define GPIO_output_functions2(x) \
   _INLINE_FAST void  x ## _on()  { x ## _GPIO_Port->BSRR = (uint32_t)( x ## _Pin      ); } \
   _INLINE_FAST void  x ## _off() { x ## _GPIO_Port->BSRR = (uint32_t)( x ## _Pin << 16); } \
   _INLINE_FAST void  x ## _set(uint32_t arg) { if (arg) x ## _on(); else x ## _off(); }    \
-  _INLINE_FAST uint32_t x ## _get() { return 0 != (x ## _GPIO_Port->IDR & x ## _Pin); }
+  _INLINE_FAST uint32_t x ## _get() { return 0 != (x ## _GPIO_Port->IDR & x ## _Pin); }    \
+  _INLINE_FAST void  x ## _pulse(unsigned qty) { for (; qty; qty--) { x ## _on(); x ## _off(); } }
+
 #define GPIO_output_functions(x) GPIO_output_functions2(x)
 
 

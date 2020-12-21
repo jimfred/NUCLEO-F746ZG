@@ -16,6 +16,7 @@ SPI_TypeDef        & r_spi   = *SPI1;
 DMA_TypeDef        & r_dma   = *DMA2;
 DMA_Stream_TypeDef & r_ds_rx = *DMA2_Stream0;
 DMA_Stream_TypeDef & r_ds_tx = *DMA2_Stream3;
+EXTI_TypeDef       & r_exti  = *EXTI;
 
 // Create a mask to
 // - check bits in the DMA LISR register and
@@ -72,16 +73,36 @@ void init()
   WRITE_REG(r_ds_tx.M0AR, (uint32_t )&tx_buf[0]); // memory address
   WRITE_REG(r_ds_tx.PAR, (uint32_t )&(r_spi.DR)); // peripheral address
 
-  SET_BIT(r_spi.CR1, SPI_CR1_SSI); // software-control of nSS - 1=release.
+  SET_BIT(r_spi.CR1, SPI_CR1_SSI); // Initially, release software-control of nSS - 1=release.
 
-  memcpy(tx_buf, "\x02\x00\x4F\x8F\xF1\xF2\xF4\xF8", 8);
+  memcpy(tx_buf, "\x01\x02\x04\x08\x10\x20\x40\x80", 8);
 
 }
 
 
 
 
-
-
 } // namespace SpiSlave
+
+// Interrupt handler for slave-side nSS signal.
+// This replaces a definition in stm32f7xx_it.c to optimize performance.
+extern "C" __attribute__((optimize("-Ofast"))) void EXTI4_IRQHandler(void)
+{
+#if SPI_SLAVE_CHECK
+  assert(SpiSlave::r_exti.PR & SPI1_NSS_Pin); // Assumed to be the only trigger for this handler.
+#endif
+
+  SpiSlave::r_exti.PR = SPI1_NSS_Pin; // |= not needed for the PR register because writing a zero-bit has no effect.
+
+  if (SPI1_NSS_get())
+  {
+    SpiSlave::r_spi.CR1 |= SPI_CR1_SSI;
+    PB6_pulse(4);
+  }
+  else
+  {
+    SpiSlave::r_spi.CR1 &= ~SPI_CR1_SSI; // Start Slave.
+    PB6_pulse(2);
+  }
+}
 

@@ -126,17 +126,12 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
-  SPI3_NSS_on();
-#if (JIM_SPI_S_DMA)
+
   SpiSlave::init();
   SpiSlave::reload();
   SpiSlave::start();
-#endif
 
-
-#if (JIM_SPI_M_DMA)
-    SpiMaster::init();
-#endif
+  SpiMaster::init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -165,20 +160,13 @@ int main(void)
       nss_save = nss;
       if (nss)
       {
-        PB6_on();
-        SpiSlave::r_spi.CR1 |= SPI_CR1_SSI;
-        PB6_off();
-
+        PB6_pulse(5);
         SpiSlave::stop();
-        SpiSlave::spi_fifo_reset();
-        SpiSlave::reload();
-        SpiSlave::start();
+        SpiSlave::restart();
+        PB6_pulse(6);
       }
       else
       {
-        PB6_on();
-        SpiSlave::r_spi.CR1 &= ~SPI_CR1_SSI;
-        PB6_off();
       }
     }
 
@@ -187,9 +175,8 @@ int main(void)
       USER_Btn_save = user_btn;
       if (user_btn)
       {
-
-#if JIM_SPI_M_DMA
-          SPI3_NSS_off();
+          PB6_pulse(1);
+          SpiMaster::ss_assert();
 
           static uint8_t tx_data_pattern = 0x40;
 
@@ -200,15 +187,14 @@ int main(void)
           }
 
           SpiMaster::start();
-#endif
-        /*
+          PB6_pulse(3);
 
-        */
       }
-      else
-      {
-        SPI3_NSS_off();
-      }
+    }
+
+    if (!SpiMaster::pending())
+    {
+      SpiMaster::ss_release();
     }
 
 #if JIM_SPI_M_DMA
@@ -353,7 +339,7 @@ static void MX_SPI3_Init(void)
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   GPIO_InitStruct.Alternate = LL_GPIO_AF_6;
   LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
@@ -502,7 +488,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
   /*Configure GPIO pin : SPI1_NSS_Pin */
   GPIO_InitStruct.Pin = SPI1_NSS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(SPI1_NSS_GPIO_Port, &GPIO_InitStruct);
 
@@ -569,6 +555,9 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
 }
 

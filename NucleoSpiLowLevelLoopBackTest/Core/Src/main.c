@@ -15,6 +15,15 @@
   *                        opensource.org/licenses/BSD-3-Clause
   *
   ******************************************************************************
+Nulceo-F746ZG
+SPI1 is Slave
+SPI3 is Master
+Loopback connections on Nucleo board:
+      SPI3                 SPI1
+nSS   PA15 out             PA4 in
+SCK   PC10                 PA5
+MOSI  PB2                  PB5
+MISO  PC11                 PA6
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -24,7 +33,7 @@
 /* USER CODE BEGIN Includes */
 #include "string.h" // memset
 #include "assert.h"
-#define JIM_SPI_M_DMA 0
+#define JIM_SPI_M_DMA 1
 #define JIM_SPI_S_DMA 1
 
 #if JIM_SPI_S_DMA
@@ -150,10 +159,6 @@ int main(void)
       nss_save = nss;
       if (nss)
       {
-        PB6_on();
-        SpiSlave::r_spi.CR1 |= SPI_CR1_SSI;
-        PB6_off();
-
         SpiSlave::stop();
         SpiSlave::spi_fifo_reset();
         SpiSlave::reload();
@@ -161,9 +166,7 @@ int main(void)
       }
       else
       {
-        PB6_on();
-        SpiSlave::r_spi.CR1 &= ~SPI_CR1_SSI;
-        PB6_off();
+
       }
     }
 
@@ -172,11 +175,9 @@ int main(void)
       USER_Btn_save = user_btn;
       if (user_btn)
       {
-#if JIM_SPI_S_HAL
-    	  SpiSlave::HalRx();
-#endif
 
 #if JIM_SPI_M_DMA
+          SPI3_NSS_off(); // asserted.
           static uint8_t tx_data_pattern = 0x40;
 
           for (unsigned i = 0; i < SpiMaster::buffer_size; i++)
@@ -184,12 +185,17 @@ int main(void)
             SpiMaster::tx_buf[i] = tx_data_pattern;
             tx_data_pattern++;
           }
+          SpiSlave::r_spi.CR1 &= ~SPI_CR1_SSI; // Start Slave.
 
           SpiMaster::start();
 #endif
         /*
 
         */
+      }
+      else
+      {
+        SPI3_NSS_on();
       }
     }
 
@@ -487,7 +493,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : SPI1_NSS_Pin */
   GPIO_InitStruct.Pin = SPI1_NSS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(SPI1_NSS_GPIO_Port, &GPIO_InitStruct);
 
@@ -555,6 +561,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
 }
 

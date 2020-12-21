@@ -84,6 +84,7 @@ void Error_Handler(void);
 #define RMII_MDIO_GPIO_Port GPIOA
 #define SPI1_NSS_Pin GPIO_PIN_4
 #define SPI1_NSS_GPIO_Port GPIOA
+#define SPI1_NSS_EXTI_IRQn EXTI4_IRQn
 #define RMII_CRS_DV_Pin GPIO_PIN_7
 #define RMII_CRS_DV_GPIO_Port GPIOA
 #define RMII_RXD0_Pin GPIO_PIN_4

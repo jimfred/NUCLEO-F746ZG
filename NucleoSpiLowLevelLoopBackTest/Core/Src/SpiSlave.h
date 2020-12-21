@@ -13,9 +13,12 @@
 #include "assert.h"
 #include "string.h"
 
+// This enables asserts used to check assumptions.
+#define SPI_SLAVE_CHECK 0
+
 namespace SpiSlave
 {
-static const unsigned buffer_size = 3*4;
+static const unsigned buffer_size = 24;
 extern uint8_t tx_buf[buffer_size];
 extern uint8_t rx_buf[buffer_size];
 extern SPI_TypeDef        & r_spi   ;
@@ -44,24 +47,30 @@ void init();
 
 _INLINE_FAST void reload()
 {
+#if SPI_SLAVE_CHECK
   assert(READ_REG(r_ds_rx.PAR) == (uint32_t)&(r_spi.DR)); // peripheral address
   assert(READ_REG(r_ds_rx.M0AR) == (uint32_t)&rx_buf[0]); // memory address
   assert(READ_REG(r_ds_tx.M0AR) == (uint32_t)&tx_buf[0]); // memory address
   assert(READ_REG(r_ds_tx.PAR) == (uint32_t)&(r_spi.DR)); // peripheral address
+#endif // SPI_SLAVE_CHECK
 
-  PB6_on();
+  tx_buf[1]++;
+
+  // PB6_on();
+
+  //PB6_on();
   WRITE_REG(r_dma.LIFCR, dma_lisr_mask); // Reset LISR bits (TC, error etc).
 
   WRITE_REG(r_ds_rx.NDTR, buffer_size);
   WRITE_REG(r_ds_tx.NDTR, buffer_size);
-  PB6_off(); // 40 ns.
+  //PB6_off(); // 40 ns.
+
+  // PB6_off(); // 36 nsec
 
 }
 
 _INLINE_FAST void start()
 {
-  tx_buf[0] = 2;
-  tx_buf[1]++;
   /*
    * The manual specifies this sequence when starting communication using DMA:
    * 1. Enable DMA Rx buffer in the RXDMAEN bit in the SPI_CR2 register.
@@ -70,18 +79,14 @@ _INLINE_FAST void start()
    * 4. Enable the SPI by setting the SPE bit.
    * But, HAL swaps 3 and 4.
    */
-  PB6_on();
+  // PB6_on();
   SET_BIT(r_spi.CR2, SPI_CR2_RXDMAEN);   // [1]
   SET_BIT(r_ds_rx.CR, DMA_SxCR_EN);      // [2]
   SET_BIT(r_ds_tx.CR, DMA_SxCR_EN);      // [2]
   SET_BIT(r_spi.CR2, SPI_CR2_TXDMAEN);   // [3]
   SET_BIT(r_spi.CR1, SPI_CR1_SPE);       // [4]
 
-  // Added by Jim for software control of the NSS signal.
-  // Has no effect if SSM==0 (SPI is configured for hardware nSS).
-  ///SET_BIT(r_spi.CR1, SPI_CR1_SSI);
-
-  PB6_off(); // 380 ns
+  // PB6_off(); // 260 ns
 }
 
 ///_INLINE_FAST
@@ -92,9 +97,7 @@ inline void stop()
    * 2. Disable the SPI by following the SPI disable procedure.
    * 3. Disable DMA Tx and Rx buffers by clearing the TXDMAEN and RXDMAEN bits in the SPI_CR2 register.
    */
-  PB6_on();
-
-  SET_BIT(r_spi.CR1, SPI_CR1_SSI); // software-control of nSS - 1=release.
+  /// PB6_on();
 
   // [1]
   CLEAR_BIT(r_ds_rx.CR, DMA_SxCR_EN);
@@ -106,16 +109,16 @@ inline void stop()
   // [3]
   CLEAR_BIT(r_spi.CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN);
 
-  PB6_off(); // 300 ns
+  /// PB6_off(); // 292 ns
 
+#if SPI_SLAVE_CHECK
   assert(!READ_BIT(r_ds_rx.CR, DMA_SxCR_EN));
   assert(!READ_BIT(r_ds_tx.CR, DMA_SxCR_EN));
-  ///assert(!READ_BIT(r_spi.SR, SPI_SR_BSY));
-
   assert(!READ_BIT(r_spi.CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN));
-
+#endif
 
 }
+
 
 // Reset the SPI TX FIFO.
 // The only way to clear the TX FIFO is to reset the whole SPI port. See...
@@ -143,8 +146,7 @@ inline void stop()
 // idle zeros are not part of fixed-length segments. Idle zeros are allowed before the initial F10001
 inline __attribute__((always_inline)) void __attribute__((optimize("-Ofast"))) spi_fifo_reset()
 {
-  // Used for timing.
-  // dbg_on();
+  // PB6_on();
 
   const register uint32_t save_CR1 = r_spi.CR1; // Save
   const register uint32_t save_CR2 = r_spi.CR2;
@@ -156,15 +158,25 @@ inline __attribute__((always_inline)) void __attribute__((optimize("-Ofast"))) s
   r_spi.CR1 = save_CR1; // Restore.
   r_spi.CR2 = save_CR2;
 
-  // Used for timing.
-  // dbg_off();
+  // PB6_off(); // 176 nsec.
 
   // These asserts were used to verify this technique of saving and restoring the config registers.
   // I never saw these asserts fail.
-  //assert(r_spi.CR1 == save_CR1); // Verify (optional).
-  //assert(r_spi.CR2 == save_CR2);
+#if SPI_SLAVE_CHECK
+  assert(r_spi.CR1 == save_CR1); // Verify (optional).
+  assert(r_spi.CR2 == save_CR2);
+#endif
 }
+
+
 _INLINE_FAST bool pending() { return READ_REG(r_ds_tx.NDTR) || READ_BIT(r_spi.SR, SPI_SR_BSY); }
+
+_INLINE_FAST void restart()
+{
+  SpiSlave::spi_fifo_reset();
+  SpiSlave::reload();
+  SpiSlave::start();
+}
 
 }
 
