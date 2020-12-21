@@ -16,7 +16,7 @@ custom_mark10
   digraph G {
     SpiM [shape=box, label="SPI3, Master"];
     SpiS [shape=box, label="SPI1, Slave"];
-    SpiM -> SpiS [label="Software-controlled nSS\nSCK\nMOSI\nMISO"];
+    SpiM -> SpiS [label="Software-controlled nSS, SCK, MOSI, MISO"];
   }
 custom_mark10
 </details>
