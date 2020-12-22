@@ -139,9 +139,6 @@ inline void stop()
 //   0.494 usec. with -O0
 //   0.146  usec. with -Ofast (3.8x faster)
 // For details on gcc's attribute optimize, see https://stackoverflow.com/a/5581131/101252
-//
-// I've since discovered that this, although necessary on the SloSpi, may not be needed on the FastSpi because idle zeros are OK as long as
-// idle zeros are not part of fixed-length segments. Idle zeros are allowed before the initial F10001
 inline __attribute__((always_inline)) void __attribute__((optimize("-Ofast"))) spi_fifo_reset()
 {
   // PB6_on();
