@@ -54,8 +54,6 @@ _INLINE_FAST void reload()
   assert(READ_REG(r_ds_tx.PAR) == (uint32_t)&(r_spi.DR)); // peripheral address
 #endif // SPI_SLAVE_CHECK
 
-  tx_buf[1]++;
-
   // PB6_on();
 
   //PB6_on();

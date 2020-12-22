@@ -162,6 +162,9 @@ int main(void)
       {
         PB6_pulse(5);
         SpiSlave::stop();
+
+        SpiSlave::tx_buf[1]++; //
+
         SpiSlave::restart();
         PB6_pulse(6);
       }

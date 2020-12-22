@@ -49,6 +49,12 @@ void init()
 
   assert(!READ_BIT(r_spi.CR1, SPI_CR1_SPE)); // Should not be enabled.
 
+  // Make sure, on the nSS pin, that the Rising and Falling trigger selection register bits are enabled.
+  assert(READ_BIT(r_exti.RTSR, SPI1_NSS_Pin));
+  assert(READ_BIT(r_exti.FTSR, SPI1_NSS_Pin));
+  assert(READ_BIT(r_exti.IMR,  SPI1_NSS_Pin));
+  assert(READ_BIT(r_exti.EMR,  SPI1_NSS_Pin));
+
   static const unsigned check_ds_cr_clear_mask =
       DMA_SxCR_EN    |
       DMA_SxCR_DBM   |
@@ -92,15 +98,18 @@ extern "C" __attribute__((optimize("-Ofast"))) void EXTI4_IRQHandler(void)
   assert(SpiSlave::r_exti.PR & SPI1_NSS_Pin); // Assumed to be the only trigger for this handler.
 #endif
 
+  // Clear bits in Pending Register by writing 1's.
   SpiSlave::r_exti.PR = SPI1_NSS_Pin; // |= not needed for the PR register because writing a zero-bit has no effect.
 
   if (SPI1_NSS_get())
   {
+    // If nSS is released then also release the software controlled SSI.
     SpiSlave::r_spi.CR1 |= SPI_CR1_SSI;
     PB6_pulse(4);
   }
   else
   {
+    // If nSS is asserted then also assert the software controlled SSI.
     SpiSlave::r_spi.CR1 &= ~SPI_CR1_SSI; // Start Slave.
     PB6_pulse(2);
   }
