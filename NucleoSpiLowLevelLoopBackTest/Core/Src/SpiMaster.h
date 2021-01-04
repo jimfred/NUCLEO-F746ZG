@@ -112,7 +112,13 @@ _INLINE_FAST void stop()
 }
 
 // async poll to determine if DMA TX is still pending.
-_INLINE_FAST bool pending() { return READ_REG(r_ds_tx.NDTR) || READ_BIT(r_spi.SR, SPI_SR_BSY); }
+_INLINE_FAST bool pending()
+{
+  return
+    !READ_REG(r_dma.HISR & DMA_HISR_TCIF5) || // Transfer Complete
+      // TODO: READ_REG(r_ds_tx.NDTR) ||
+    READ_BIT(r_spi.SR, SPI_SR_BSY);
+}
 
 // Release SS (turn nSS on).
 _INLINE_FAST void ss_release() { SPI3_NSS_on(); }

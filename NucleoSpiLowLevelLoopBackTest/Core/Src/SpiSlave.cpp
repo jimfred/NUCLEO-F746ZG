@@ -53,7 +53,6 @@ void init()
   assert(READ_BIT(r_exti.RTSR, SPI1_NSS_Pin));
   assert(READ_BIT(r_exti.FTSR, SPI1_NSS_Pin));
   assert(READ_BIT(r_exti.IMR,  SPI1_NSS_Pin));
-  assert(READ_BIT(r_exti.EMR,  SPI1_NSS_Pin));
 
   static const unsigned check_ds_cr_clear_mask =
       DMA_SxCR_EN    |
