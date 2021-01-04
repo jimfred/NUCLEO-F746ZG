@@ -5,9 +5,10 @@ These projects use CubeMX for configuration and the Stm32CubeIde for the IDE.
 ## NucleoSpiLowLevelLoopBackTest 
 This is a project to test SPI DMA operation. DMA is used to reduce CPU cycles for time-critical SPI communications.
 SPI3 as a SPI Master is connected to SPI1 as a SPI Slave.
-The focus of this exercise is to optimize the SPI Slave side and the SPI master is provides a convenient source signal. 
+The focus of this exercise is to optimize the SPI Slave side and the SPI master serves as a convenient source signal. 
 HAL drivers were used only for initialization but even LL drivers seemed cumbersome so register access is used, using .cpp '&' references to registers.
 Software nSS was used assuming that the address is decoded in software.
+Timing was measured using a GPIO on PB6 and a Saleae logic analyzer. 
 
 ![Alt text](https://g.gravizo.com/source/svg/custom_mark10?https%3A%2F%2Fraw.githubusercontent.com%2Fjimfred%2FNUCLEO-F746ZG%2Fmaster%2FREADME.md)
 <details> 
