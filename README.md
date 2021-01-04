@@ -2,6 +2,9 @@
 This is a repository of example code for the Nucleo board for the STM32F746.
 These projects use CubeMX for configuration and the Stm32CubeIde for the IDE.
 
+## DmaMemSet
+Demonstrates the use of DMA to do the equivalent of a memset but quicker and asynchronously. Similar to NucleoSpiLowLevelLoopBackTest but adds DMA2 Stream1 to do a memory to memory transfer from a single memory location to a buffer.
+
 ## NucleoSpiLowLevelLoopBackTest 
 This is a project to test SPI DMA operation. DMA is used to reduce CPU cycles for time-critical SPI communications.
 SPI3 as a SPI Master is connected to SPI1 as a SPI Slave.
